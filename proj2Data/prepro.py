@@ -20,6 +20,9 @@ Test = Test.sample(frac=1).reset_index(drop=True)
 
 
 stopWords = set(stopwords.words('english'))
+stopWords.add('URL')
+stopWords.add('AT_USER')
+
 
 
 
@@ -29,11 +32,15 @@ enc.fit(["nba","hockey","leagueoflegends","soccer","funny","movies","anime","Ove
          "gameofthrones","conspiracy","worldnews","Music","wow","europe","canada","baseball"])
 
 
+Data['comments']=Data['comments'].replace(to_replace=r'((www\.[^\s]+)|(https?://[^\s]+))', value='URL', regex=True)
+Data['comments']=Data['comments'].replace(to_replace=r'@[^\s]+', value='AT_USER', regex=True)
+Data['comments'].apply(word_tokenize)
 
 
-X_train= Data.comments
-y_train= enc.transform(Data.subreddits)
-X_test= Test.comments
+X_train= Data['comments']
+y_train= enc.transform(Data['subreddits'])
+X_test= Test['comments']
+
 
 
 
