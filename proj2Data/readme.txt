@@ -2,6 +2,11 @@ X_train,y_train,X_test  are raw data
 
 y is encoded with 1~20 representing different subreddits
 
+I tooke away the URL and @user from the data,
+and apply tokenizer from ntlk
+
+
+
 Xtrain,Xtest are matrix using TfidfVectorizer
 with shape
 (70000,2million+)
