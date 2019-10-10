@@ -3,13 +3,19 @@ import numpy as np
 from operator import add
 import math
 
+
 class NaiveBayes:
     l_funcs: {} # Likelihood functions
     class_var = 'subreddit'
     training_set = None
+    thetas = {}
+    class_probs = None
 
     # Initializes and trains the model with the dataset
     def __init__(self, training_set, class_var):
+        self.train(training_set, class_var)
+
+    def train(self, training_set, class_var):
         self.class_var = class_var
         self.training_set = training_set
         self.class_probs = self.get_class_probs()
@@ -17,9 +23,37 @@ class NaiveBayes:
         for y_i in training_set[self.class_var].unique():  # Produce log likelihood of each class variable
             self.l_funcs[y_i] = self.get_log_likelihood(self.training_set, y_i)
 
-    # Predicts the classification for feature vector x
+    # Predicts the classification for feature vector x, must be trained before. TODO: What if x isn't a list?
     def predict(self, x):
-        return None
+        # Get the class with the maximum log likelihood
+        max_likelihood = -math.inf
+        best_class = None
+
+        for y_i in self.l_funcs:
+            likelihood = self.lfuncs[y_i](x)
+            if likelihood > max_likelihood:
+                max_likelihood = likelihood
+                best_class = y_i
+        return y_i
+
+    # Train model on training set and check accuracy on the validation set
+    def train_and_validate(self, training_set, validation_set, class_var):
+        self.train(training_set, class_var)
+        # Get real results and predictions
+        real = list(validation_set[class_var])
+        validation_set = validation_set.drop(class_var)
+        predictions = []
+        for x in validation_set:
+            predictions.append(self.predict(x))
+
+        # Compare accuracy
+        correct_count = 0
+        for i in range(0, len(predictions)):
+            if predictions[i] == real[i]:
+                correct_count += 1
+
+        accuracy = correct_count/len(real)
+        return accuracy
 
     # Return a function for the log likelihood of a given class
     def __get_log_likelihood(self, dataset, class_val):
