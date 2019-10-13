@@ -3,7 +3,8 @@ X_train,y_train,X_test  are raw data
 y is encoded with 1~20 representing different subreddits
 
 I tooke away the URL and @user from the data,
-and apply tokenizer from ntlk
+and apply lemmalization with inspiration by 
+https://simonhessner.de/lemmatize-whole-sentences-with-python-and-nltks-wordnetlemmatizer/?source=post_page-----c1bfff963258----------------------
 
 
 
