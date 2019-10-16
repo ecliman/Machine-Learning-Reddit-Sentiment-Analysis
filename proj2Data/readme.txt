@@ -19,3 +19,6 @@ with shape
 Then I also did SVD on the sets.
 XtrainSVD  (70000,100)
 XtestSV     (30000,100)
+
+add XtrainBin
+    XtestBin as binary sparse matrix
