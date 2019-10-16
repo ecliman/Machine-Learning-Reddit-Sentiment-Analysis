@@ -2,11 +2,14 @@ import pandas as pd
 
 import numpy
 from sklearn import preprocessing
+import nltk
 from nltk.corpus import stopwords
-
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 Data = pd.read_csv("reddit_train.csv",sep=",",usecols=[1,2])
@@ -26,6 +29,36 @@ stopWords.add('AT_USER')
 
 
 
+
+
+lemmatizer = WordNetLemmatizer()
+
+
+def nltk_tag_to_wordnet_tag(nltk_tag):
+    if nltk_tag.startswith('J'):
+        return wordnet.ADJ
+    elif nltk_tag.startswith('V'):
+        return wordnet.VERB
+    elif nltk_tag.startswith('N'):
+        return wordnet.NOUN
+    elif nltk_tag.startswith('R'):
+        return wordnet.ADV
+    else:          
+        return None
+
+def lemmatize_sentence(sentence):
+    nltk_tagged = nltk.pos_tag(nltk.word_tokenize(sentence))  
+    wordnet_tagged = map(lambda x: (x[0], nltk_tag_to_wordnet_tag(x[1])), nltk_tagged)
+    lemmatized_sentence = []
+    for word, tag in wordnet_tagged:
+        if tag is None:
+            lemmatized_sentence.append(word)
+        else:        
+            lemmatized_sentence.append(lemmatizer.lemmatize(word, tag))
+    return " ".join(lemmatized_sentence)
+#This lemmatization part is inspired by 'Lemmatize whole sentences with Python and nltk’s WordNetLemmatizer' see reference.
+
+
 enc = preprocessing.LabelEncoder()
 
 enc.fit(["nba","hockey","leagueoflegends","soccer","funny","movies","anime","Overwatch","trees","GlobalOffensive","nfl","AskReddit",
@@ -34,7 +67,7 @@ enc.fit(["nba","hockey","leagueoflegends","soccer","funny","movies","anime","Ove
 
 Data['comments']=Data['comments'].replace(to_replace=r'((www\.[^\s]+)|(https?://[^\s]+))', value='URL', regex=True)
 Data['comments']=Data['comments'].replace(to_replace=r'@[^\s]+', value='AT_USER', regex=True)
-Data['comments'].apply(word_tokenize)
+Data['comments']=Data.apply(lambda row: lemmatize_sentence(row['comments']), axis=1)
 
 
 X_train= Data['comments']
@@ -64,3 +97,13 @@ Xtest= vec.transform(X_test)
 svd = TruncatedSVD(n_components=100)
 XtrainSVD=svd.fit_transform(Xtrain)
 XtestSVD=svd.transform(Xtest)
+
+
+
+
+
+
+
+binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,3),binary=True)
+XtrainBin=binaryVec.fit_transform(X_train)
+XtestBin=binaryVec.transform(X_test)
