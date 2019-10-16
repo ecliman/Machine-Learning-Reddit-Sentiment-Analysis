@@ -9,6 +9,7 @@ from nltk.corpus import wordnet
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import CountVectorizer
 
 
 Data = pd.read_csv("reddit_train.csv",sep=",",usecols=[1,2])
@@ -96,3 +97,13 @@ Xtest= vec.transform(X_test)
 svd = TruncatedSVD(n_components=100)
 XtrainSVD=svd.fit_transform(Xtrain)
 XtestSVD=svd.transform(Xtest)
+
+
+
+
+
+
+
+binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,3),binary=True)
+XtrainBin=binaryVec.fit_transform(X_train)
+XtestBin=binaryVec.transform(X_test)
