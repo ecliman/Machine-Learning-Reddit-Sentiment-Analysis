@@ -1,47 +1,79 @@
 import numpy as np
 from scipy import sparse
+import math
 
 class SparseNaiveBayes:
+
+    split = dict()
+    thetas = dict()
+    class_probs = dict()
+    l_funcs = dict()
+    x_train = None
+    y_train = None
 
     def __init__(self):
         return
 
+    def fit(self, x_train, y_train):
+        self.x_train = x_train
+        self.y_train = y_train
+        self.split_x()
+        self.get_class_probs()
+        self.get_thetas()
+
     # Split x into separate sparse matricies based on their class
-    @staticmethod
-    def split_x(x_train, y_train):
+    def split_x(self):
         x_split = dict()
         # Iterate example by example
-        for i in range(0, len(y_train)):
-            cls = y_train[i]
-            example = x_train[i]
+        for i in range(0, len(self.y_train)):
+            cls = self.y_train[i]
+            example = self.x_train[i]
             if cls in x_split:  # Stack onto existing split
                 x_split[cls] = sparse.vstack([x_split[cls], example])
             else:  # Create new key for split
                 x_split[cls] = sparse.csr_matrix(example)
+
+        self.split = x_split
         return x_split
 
-    @staticmethod
-    def get_class_probs(x_train, x_split):
-        class_probs = dict()
-        for cls in x_split:
-            class_probs[cls] = x_split[cls].shape[0]/x_train.shape[0]
-        return class_probs
+    def get_class_probs(self):
+        cp = dict()
+        for cls in self.split:
+            cp[cls] = self.split[cls].shape[0]/self.x_train.shape[0]
 
-    @staticmethod
-    def get_thetas(x_split):
-        thetas = dict()
+        self.class_probs = cp
+        return cp
+
+    def get_thetas(self):
+        t = dict()
         # For each feature in each class
-        for cls in x_split:
-            cur_split = x_split[cls]
+        for cls in self.split:
+            cur_split = self.split[cls]
             non_zero = cur_split.nonzero()[1]
             # Count occurences of non-zeros in columns
             unique, counts = np.unique(non_zero, return_counts=True)
             occurrences = dict(zip(unique, counts))
-            thetas[cls] = [0] * cur_split.shape[1]
+            t[cls] = [0] * cur_split.shape[1]
             for key in occurrences:
-                thetas[cls][key] = occurrences[key]/cur_split.shape[0]
+                t[cls][key] = occurrences[key]/cur_split.shape[0]
 
-        return thetas
+        self.thetas = t
+        return t
+
+    # Returns likelihood of a given class
+    def get_class_likelihood(self, x, cls):
+        cur_thetas = self.thetas[cls]
+        feature_likelihood = 0
+        for j in range(0, len(cur_thetas)):
+            feature_likelihood += x[j]*np.log(cur_thetas[j]) + (1-x[j]*np.log(1-cur_thetas[j]))
+        likelihood = feature_likelihood + np.log(self.class_probs[cls])
+        return likelihood
+
+    def predict_y(self, x):
+        likelihoods = dict()
+        for cls in self.thetas:
+            likelihoods[cls] = self.get_class_likelihood(x, cls)
+        return np.argmax(likelihoods)
 
 
 # Testing
@@ -49,14 +81,4 @@ model = SparseNaiveBayes()
 x = sparse.load_npz('../data/xtrainbin.npz')
 y = np.load('../data/y_train.npy')
 
-
-# Splitting
-split = model.split_x(x, y)
-
-# Class Probs
-class_probs = model.get_class_probs(x, split)
-print(class_probs)
-
-# Thetas
-thetas = model.get_thetas(split)
-print(thetas[0])
+model.fit(x, y)
