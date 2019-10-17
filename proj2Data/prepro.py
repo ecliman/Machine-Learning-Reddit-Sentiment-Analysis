@@ -82,7 +82,7 @@ numpy.save('../root/data/y_train.npy', y_train)
 
 
 
-vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 3))
+vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 1))
  
 
 Xtrain=vec.fit_transform(X_train)
