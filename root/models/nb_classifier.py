@@ -39,7 +39,7 @@ class SparseNaiveBayes:
             occurrences = dict(zip(unique, counts))
             thetas[cls] = [0] * cur_split.shape[1]
             for key in occurrences:
-                thetas[cls][key] = occurrences[key]
+                thetas[cls][key] = occurrences[key]/cur_split.shape[0]
 
         return thetas
 
@@ -59,4 +59,4 @@ print(class_probs)
 
 # Thetas
 thetas = model.get_thetas(split)
-print(type(thetas))
+print(thetas[0])
