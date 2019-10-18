@@ -10,26 +10,15 @@ from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer
+from scipy import sparse
 
 
 Data = pd.read_csv("reddit_train.csv",sep=",",usecols=[1,2])
-Data = Data.sample(frac=1).reset_index(drop=True)
-
 Test = pd.read_csv("reddit_test.csv",sep=",")
-Test = Test.sample(frac=1).reset_index(drop=True)
-
-
-
-
 
 stopWords = set(stopwords.words('english'))
 stopWords.add('URL')
 stopWords.add('AT_USER')
-
-
-
-
-
 
 lemmatizer = WordNetLemmatizer()
 
@@ -43,8 +32,9 @@ def nltk_tag_to_wordnet_tag(nltk_tag):
         return wordnet.NOUN
     elif nltk_tag.startswith('R'):
         return wordnet.ADV
-    else:          
+    else:
         return None
+
 
 def lemmatize_sentence(sentence):
     nltk_tagged = nltk.pos_tag(nltk.word_tokenize(sentence))  
@@ -75,33 +65,26 @@ y_train= enc.transform(Data['subreddits'])
 X_test= Test['comments']
 
 
-
-
-
-
-
-
-
-
-vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 1))
+vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 2))
 Xtrain=vec.fit_transform(X_train)
-Xtest= vec.transform(X_test)
+Xtest=vec.transform(X_test)
 
 
+numpy.save('../root/data/y_train.npy', y_train)
+sparse.save_npz('../root/data/xtrainraw.npz', Xtrain)
+sparse.save_npz('../root/data/xtestraw.npz', Xtest)
 
 
-
-
-svd = TruncatedSVD(n_components=5000,n_iter=5,random_state=0)
-XtrainSVD=svd.fit_transform(Xtrain)
-XtestSVD=svd.transform(Xtest)
-
-
-
-
-
-
-
-binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,2),binary=True,max_features=10000)
-XtrainBin=binaryVec.fit_transform(X_train)
-XtestBin=binaryVec.transform(X_test)
+# svd = TruncatedSVD(n_components=5000,n_iter=5,random_state=0)
+# XtrainSVD=svd.fit_transform(Xtrain)
+# XtestSVD=svd.transform(Xtest)
+#
+#
+# numpy.save('../root/data/xtrainsvd.npy', XtrainSVD)
+# numpy.save('../root/data/xtestsvd.npy', XtestSVD)
+#
+#
+#
+# binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,2),binary=True,max_features=10000)
+# XtrainBin=binaryVec.fit_transform(X_train)
+# XtestBin=binaryVec.transform(X_test)

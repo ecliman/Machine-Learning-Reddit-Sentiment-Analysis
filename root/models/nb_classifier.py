@@ -21,6 +21,15 @@ class SparseNaiveBayes:
         self.get_class_probs()
         self.get_thetas()
 
+    # Assumes that x_test is a sparse matrix
+    def predict(self, x_test):
+        all_pred = []
+        for i in range(x_test.shape[0]):
+            cur_example = x_test[i]
+            pred = self.predict_y(cur_example)
+            all_pred.append(pred)
+        return np.ndarray(all_pred)
+
     # Split x into separate sparse matricies based on their class
     def split_x(self):
         x_split = dict()
@@ -54,8 +63,11 @@ class SparseNaiveBayes:
             unique, counts = np.unique(non_zero, return_counts=True)
             occurrences = dict(zip(unique, counts))
             t[cls] = [0] * cur_split.shape[1]
-            for key in occurrences:
-                t[cls][key] = occurrences[key]/cur_split.shape[0]
+            for j in range(0, cur_split.shape[1]):
+                occ = 0
+                if j in occurrences:
+                    occ = occurrences[j]
+                t[cls][j] = (occ+1)/(cur_split.shape[0]+2)
 
         self.thetas = t
         return t
@@ -65,15 +77,22 @@ class SparseNaiveBayes:
         cur_thetas = self.thetas[cls]
         feature_likelihood = 0
         for j in range(0, len(cur_thetas)):
-            feature_likelihood += x[j]*np.log(cur_thetas[j]) + (1-x[j]*np.log(1-cur_thetas[j]))
-        likelihood = feature_likelihood + np.log(self.class_probs[cls])
+            feature_likelihood += x[0, j]*math.log(cur_thetas[j]) + (1-x[0, j])*math.log(1-cur_thetas[j])
+        likelihood = feature_likelihood + math.log(self.class_probs[cls])
         return likelihood
 
     def predict_y(self, x):
         likelihoods = dict()
         for cls in self.thetas:
             likelihoods[cls] = self.get_class_likelihood(x, cls)
-        return np.argmax(likelihoods)
+            print(cls, likelihoods[cls])
+        max_likelihood = -math.inf
+        best_cls = None
+        for cls in likelihoods:
+            if likelihoods[cls] > max_likelihood:
+                best_cls = cls
+                max_likelihood = likelihoods[cls]
+        return best_cls
 
 
 # Testing
@@ -82,3 +101,8 @@ x = sparse.load_npz('../data/xtrainbin.npz')
 y = np.load('../data/y_train.npy')
 
 model.fit(x, y)
+
+print('Fitting Complete.')
+
+pred = model.predict_y(x[1])
+print(pred)
