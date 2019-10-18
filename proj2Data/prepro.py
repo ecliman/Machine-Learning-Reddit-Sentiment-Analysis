@@ -2,7 +2,6 @@ import pandas as pd
 
 import numpy
 from sklearn import preprocessing
-import scipy.sparse
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -13,14 +12,11 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import CountVectorizer
 
 
-# Downloads
-nltk.download('averaged_perceptron_tagger')
-
 Data = pd.read_csv("reddit_train.csv",sep=",",usecols=[1,2])
-# Data = Data.sample(frac=1).reset_index(drop=True)
+Data = Data.sample(frac=1).reset_index(drop=True)
 
 Test = pd.read_csv("reddit_test.csv",sep=",")
-# Test = Test.sample(frac=1).reset_index(drop=True)
+Test = Test.sample(frac=1).reset_index(drop=True)
 
 
 
@@ -74,32 +70,38 @@ Data['comments']=Data['comments'].replace(to_replace=r'@[^\s]+', value='AT_USER'
 Data['comments']=Data.apply(lambda row: lemmatize_sentence(row['comments']), axis=1)
 
 
-X_train = Data['comments']
-y_train = enc.transform(Data['subreddits'])
-X_test = Test['comments']
-
-numpy.save('../root/data/y_train.npy', y_train)
+X_train= Data['comments']
+y_train= enc.transform(Data['subreddits'])
+X_test= Test['comments']
 
 
 
-vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 3))
- 
 
+
+
+
+
+
+
+vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 1))
 Xtrain=vec.fit_transform(X_train)
 Xtest= vec.transform(X_test)
 
 
-svd = TruncatedSVD(n_components=100)
+
+
+
+
+svd = TruncatedSVD(n_components=5000,n_iter=5,random_state=0)
 XtrainSVD=svd.fit_transform(Xtrain)
 XtestSVD=svd.transform(Xtest)
 
 
-numpy.save('../root/data/xtrainsvd.npy', XtrainSVD)
-numpy.save('../root/data/xtestsvd.npy', XtestSVD)
 
 
-binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,3),binary=True)
+
+
+
+binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,2),binary=True,max_features=10000)
 XtrainBin=binaryVec.fit_transform(X_train)
 XtestBin=binaryVec.transform(X_test)
-scipy.sparse.save_npz('../root/data/xtrainbin.npz', XtrainBin)
-scipy.sparse.save_npz('../root/data/xtestbin.npz', XtestBin)
