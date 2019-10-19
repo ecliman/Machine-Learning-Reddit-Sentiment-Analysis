@@ -89,9 +89,8 @@ Xtest= vec.transform(X_test)
 
 
 selection = SelectKBest(chi2, k=100000)
-X_new = selection.fit_transform(Xtrain,y_train)
-
-
+X_train_new = selection.fit_transform(Xtrain,y_train)
+X_test_new = selection.transform(Xtrain,y_train)
 
 
 
