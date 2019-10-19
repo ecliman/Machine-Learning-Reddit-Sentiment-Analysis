@@ -82,7 +82,7 @@ X_test= Test['comments']
 
 
 
-vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 1))
+vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 2))
 Xtrain=vec.fit_transform(X_train)
 Xtest= vec.transform(X_test)
 
@@ -90,10 +90,22 @@ Xtest= vec.transform(X_test)
 
 selection = SelectKBest(chi2, k=100000)
 X_train_new = selection.fit_transform(Xtrain,y_train)
-X_test_new = selection.transform(Xtest)
+X_test_new = selection.transform(Xtrain,y_train)
 
 
 
 binaryVec = CountVectorizer(stop_words=stopWords,ngram_range=(1,2),binary=True,max_features=10000)
 XtrainBin=binaryVec.fit_transform(X_train)
 XtestBin=binaryVec.transform(X_test)
+
+
+
+from sklearn.naive_bayes import ComplementNB
+cnb=ComplementNB()
+from sklearn.ensemble import BaggingClassifier
+bootstrap = BaggingClassifier (n_estimators=500,base_estimator=cnb)
+bootstrap.fit(X_train_new,y_train)
+pred111=bootstrap.predict(X_test_new)
+
+pred = enc.inverse_transform(pred111)
+pd.DataFrame(pred, columns=['Id','Category']).to_csv('prediction.csv')
