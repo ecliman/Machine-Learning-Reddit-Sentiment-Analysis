@@ -12,19 +12,15 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 
 Data = pd.read_csv("reddit_train.csv",sep=",",usecols=[1,2])
-Data = Data.sample(frac=1).reset_index(drop=True)
 
 Test = pd.read_csv("reddit_test.csv",sep=",")
-Test = Test.sample(frac=1).reset_index(drop=True)
 
 
 
 
 
 stopWords = set(stopwords.words('english'))
-stopWords.add('URL')
-stopWords.add('AT_USER')
-
+stopWords.add('url')
 
 
 
@@ -64,8 +60,7 @@ enc.fit(["nba","hockey","leagueoflegends","soccer","funny","movies","anime","Ove
          "gameofthrones","conspiracy","worldnews","Music","wow","europe","canada","baseball"])
 
 
-Data['comments']=Data['comments'].replace(to_replace=r'((www\.[^\s]+)|(https?://[^\s]+))', value='URL', regex=True)
-Data['comments']=Data['comments'].replace(to_replace=r'@[^\s]+', value='AT_USER', regex=True)
+Data['comments']=Data['comments'].replace(to_replace=r'((www\.[^\s]+)|(https?://[^\s]+))', value='url', regex=True)
 Data['comments']=Data.apply(lambda row: lemmatize_sentence(row['comments']), axis=1)
 
 
@@ -82,13 +77,13 @@ X_test= Test['comments']
 
 
 
-vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 2))
+vec = TfidfVectorizer(stop_words=stopWords, ngram_range=(1, 2),max_features=300000)
 Xtrain=vec.fit_transform(X_train)
 Xtest= vec.transform(X_test)
 
 
 
-selection = SelectKBest(chi2, k=100000)
+selection = SelectKBest(chi2, k=150000)
 X_train_new = selection.fit_transform(Xtrain,y_train)
 X_test_new = selection.transform(Xtest)
 
@@ -109,4 +104,4 @@ bootstrap.fit(X_train_new,y_train)
 pred111=bootstrap.predict(X_test_new)
 
 pred = enc.inverse_transform(pred111)
-pd.DataFrame(pred, columns=['Id','Category']).to_csv('pred.csv')
+pd.DataFrame(pred, columns=['Category']).to_csv('pred.csv')
