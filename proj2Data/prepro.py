@@ -7,7 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import SelectKBest,chi2 
+from sklearn.feature_selection import SelectKBest,chi2,f_classif
 from sklearn.feature_extraction.text import CountVectorizer
 
 
@@ -83,7 +83,7 @@ Xtest= vec.transform(X_test)
 
 
 
-selection = SelectKBest(chi2, k=150000)
+selection = SelectKBest(f_classif, k=60000)
 X_train_new = selection.fit_transform(Xtrain,y_train)
 X_test_new = selection.transform(Xtest)
 
@@ -104,4 +104,4 @@ bootstrap.fit(X_train_new,y_train)
 pred111=bootstrap.predict(X_test_new)
 
 pred = enc.inverse_transform(pred111)
-pd.DataFrame(pred, columns=['Category']).to_csv('pred.csv')
+pd.DataFrame(pred, columns=['Category']).to_csv('prediction.csv')
