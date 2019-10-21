@@ -95,13 +95,3 @@ XtestBin=binaryVec.transform(X_test)
 
 
 
-from sklearn.naive_bayes import ComplementNB
-cnb=ComplementNB()
-from sklearn.ensemble import BaggingClassifier
-
-bootstrap = BaggingClassifier (n_estimators=200,base_estimator=cnb)
-bootstrap.fit(X_train_new,y_train)
-pred111=bootstrap.predict(X_test_new)
-
-pred = enc.inverse_transform(pred111)
-pd.DataFrame(pred, columns=['Category']).to_csv('prediction.csv')
